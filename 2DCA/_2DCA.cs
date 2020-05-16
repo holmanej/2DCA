@@ -10,12 +10,12 @@ using System.Windows.Forms;
 
 namespace _2DCA
 {
-    class ECA
+    class _2DCA
     {
         public int[,] Field;
         private Point[] Neighborhood = { new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1), new Point(-1, 1), new Point(-1, 0), new Point(-1, -1), new Point(0, -1), new Point(1, -1) };
 
-        public ECA(string rule, int density, bool random, Size area)
+        public _2DCA(string rule, int density, bool random, Size area)
         {
             string[] parts = rule.Split('/');
             int[] birth = Array.ConvertAll(parts[0].Substring(1).ToArray(), item => (int)item - '0');

@@ -16,7 +16,7 @@ namespace _2DCA
     public partial class Form1 : Form
     {
 
-        private ECA eca;
+        private _2DCA eca;
         private Bitmap Pattern = new Bitmap(1, 1);
         private Rectangle renderArea = new Rectangle(0, 0, 500, 500);
 
@@ -125,7 +125,7 @@ namespace _2DCA
             SolidBrush grayBrush = new SolidBrush(Color.Gray);
             gfx.FillRectangle(grayBrush, b.Parent.Width, 0, Width - b.Parent.Width, Height);
 
-            eca = new ECA(rule, density, cb.Checked, renderArea.Size);
+            eca = new _2DCA(rule, density, cb.Checked, renderArea.Size);
 
             BitmapData bmpData = Pattern.LockBits(renderArea, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
             IntPtr ptr = bmpData.Scan0;

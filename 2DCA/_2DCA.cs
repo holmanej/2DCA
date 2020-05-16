@@ -29,7 +29,7 @@ namespace _2DCA
                 Debug.WriteLine(b);
             }
 
-            Field = new int[area.Width, area.Height];
+            Field = new int[area.Height, area.Height];
 
             if (random)
             {
@@ -44,7 +44,7 @@ namespace _2DCA
             }
             else
             {
-                Field[area.Width / 2, area.Height / 2] = 1;
+                Field[area.Height / 2, area.Height / 2] = 1;
             }
 
             int[] neighbors = new int[9];
@@ -52,9 +52,10 @@ namespace _2DCA
             stopwatch.Start();
             for (int border = 1; border < (area.Height / 2) - 1; border++)
             {
+                int[,] newField = new int[area.Height, area.Height];
                 for (int i = (area.Height / 2) - border; i < (area.Height / 2) + border; i++)
                 {
-                    Parallel.For((area.Width / 2) - border, (area.Width / 2) + border, (int j) =>
+                    for(int j = (area.Width / 2) - border; j < (area.Width / 2) + border; j++)
                     {
                         for (int p = 0; p < Neighborhood.Count(); p++)
                         {
@@ -69,14 +70,16 @@ namespace _2DCA
                         }
                         if (birth.Any(c => neighbors[c] == 1))
                         {
-                            Field[j, i] = 1;
+                            newField[j, i] = 1;
                         }
-                        if (survival.All(c => neighbors[c] == 0))
+                        else if (survival.All(c => neighbors[c] == 0))
                         {
-                            Field[j, i] = 0;
+                            newField[j, i] = 0;
                         }
-                    });
+                    }
                 }
+                Field = newField;
+                Debug.WriteLine(border + "/" + area.Height / 2);
             }
             stopwatch.Stop();
             Debug.WriteLine(stopwatch.Elapsed);

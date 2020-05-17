@@ -18,7 +18,8 @@ namespace _2DCA
 
         private _2DCA eca;
         private Bitmap Pattern = new Bitmap(1, 1);
-        private Rectangle renderArea = new Rectangle(0, 0, 500, 500);
+        private Rectangle renderArea = new Rectangle(0, 0, 320, 240);
+        Timer cycleTick = new Timer();
 
         public Form1()
         {
@@ -36,14 +37,14 @@ namespace _2DCA
             {
                 Location = new Point(20, 20),
                 Size = new Size(150, 20),
-                Text = "Rule (B#/S#)"
+                Text = "Rule (S/B)"
             };
             controlPanel.Controls.Add(rule_Label);
             TextBox rule_TextBox = new TextBox()
             {
                 Location = new Point(20, 50),
                 Size = new Size(100, 20),
-                Text = "B34/S34"
+                Text = "1/123"
             };
             controlPanel.Controls.Add(rule_TextBox);
 
@@ -99,10 +100,10 @@ namespace _2DCA
         {
             Button b = (Button)sender;
             var CC = b.Parent.Controls;
-            foreach (Control c in b.Parent.Controls)
-            {
-                Debug.WriteLine(c.Text);
-            }
+            //foreach (Control c in b.Parent.Controls)
+            //{
+            //    Debug.WriteLine(c.Text);
+            //}
             CheckBox cb = (CheckBox)CC[3];
             string rule = CC[1].Text;
             int density = int.Parse(CC[4].Text);
@@ -127,6 +128,27 @@ namespace _2DCA
 
             eca = new _2DCA(rule, density, cb.Checked, renderArea.Size);
 
+            cycleTick.Interval = 500;
+            cycleTick.Tick += CycleTick_Tick;
+            cycleTick.Start();
+        }
+
+        private void CycleTick_Tick(object sender, EventArgs e)
+        {
+            eca.NextCycle();
+            DrawCycle();
+            if (eca.CalcTime > 33)
+            {
+                cycleTick.Interval = (int)(eca.CalcTime * 1.1);
+            }
+            else
+            {
+                cycleTick.Interval = 33;
+            }
+        }
+
+        private void DrawCycle()
+        {
             BitmapData bmpData = Pattern.LockBits(renderArea, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
             IntPtr ptr = bmpData.Scan0;
             int bytes = Math.Abs(bmpData.Stride) * Pattern.Height;
@@ -136,32 +158,30 @@ namespace _2DCA
             for (int i = 0; i < renderArea.Height - 1; i++)
             {
                 Parallel.For(0, renderArea.Width - 1, (j) =>
-               {
-                   int coordinate = (i * 4 * renderArea.Width) + (j * 4);
-                   if (eca.Field[j, i] == 1)
-                   {
-                       patternValues[coordinate] = 0;
-                       patternValues[coordinate + 1] = 0;
-                       patternValues[coordinate + 2] = 0;
-                       patternValues[coordinate + 3] = 255;
+                {
+                    int coordinate = (i * 4 * renderArea.Width) + (j * 4);
+                    if (eca.Field[j, i] == 1)
+                    {
+                        patternValues[coordinate] = 0;
+                        patternValues[coordinate + 1] = 0;
+                        patternValues[coordinate + 2] = 0;
+                        patternValues[coordinate + 3] = 255;
 
-                   }
-                   else
-                   {
-                       patternValues[coordinate] = 255;
-                       patternValues[coordinate + 1] = 255;
-                       patternValues[coordinate + 2] = 255;
-                       patternValues[coordinate + 3] = 255;
-                   }
-               });
-                log.Clear();
-                log.AppendText(i * 1000 / renderArea.Height / 10 + "%");
+                    }
+                    else
+                    {
+                        patternValues[coordinate] = 255;
+                        patternValues[coordinate + 1] = 255;
+                        patternValues[coordinate + 2] = 255;
+                        patternValues[coordinate + 3] = 255;
+                    }
+                });
             }
+
             Marshal.Copy(patternValues, 0, ptr, bytes);
             Pattern.UnlockBits(bmpData);
+            Graphics gfx = CreateGraphics();
             gfx.DrawImage(CropPattern(), 205, 5);
-            log.Clear();
-            log.AppendText("100%\r\nDone!");
         }
 
         private Bitmap CropPattern()

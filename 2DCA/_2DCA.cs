@@ -14,29 +14,34 @@ namespace _2DCA
     {
         public int[,] Field;
         private Point[] Neighborhood = { new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1), new Point(-1, 1), new Point(-1, 0), new Point(-1, -1), new Point(0, -1), new Point(1, -1) };
+        private int[] Birth;
+        private int[] Survival;
+        private Size Area;
+        public long CalcTime;
 
         public _2DCA(string rule, int density, bool random, Size area)
         {
             string[] parts = rule.Split('/');
-            int[] birth = Array.ConvertAll(parts[0].Substring(1).ToArray(), item => (int)item - '0');
-            int[] survival = Array.ConvertAll(parts[1].Substring(1).ToArray(), item => (int)item - '0');
-            foreach (int b in birth)
-            {
-                Debug.WriteLine(b);
-            }
-            foreach (int b in survival)
-            {
-                Debug.WriteLine(b);
-            }
+            Survival = Array.ConvertAll(parts[0].ToArray(), item => (int)item - '0');
+            Birth = Array.ConvertAll(parts[1].ToArray(), item => (int)item - '0');
+            //foreach (int b in Birth)
+            //{
+            //    Debug.WriteLine(b);
+            //}
+            //foreach (int b in Survival)
+            //{
+            //    Debug.WriteLine(b);
+            //}
 
-            Field = new int[area.Height, area.Height];
+            Area = area;
+            Field = new int[Area.Width, Area.Height];
 
             if (random)
             {
                 Random rand = new Random();
-                for (int i = 0; i < area.Width - 1; i++)
+                for (int i = 0; i < Area.Width - 1; i++)
                 {
-                    for (int j = 0; j < area.Height; j++)
+                    for (int j = 0; j < Area.Height; j++)
                     {
                         Field[i, j] = rand.Next(0, 100) < density ? 1 : 0;
                     }
@@ -44,44 +49,40 @@ namespace _2DCA
             }
             else
             {
-                Field[area.Height / 2, area.Height / 2] = 1;
+                Field[Area.Width / 2, Area.Height / 2] = 1;
             }
+        }
 
-            int[] neighbors = new int[9];
+        public void NextCycle()
+        {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            for (int border = 1; border < (area.Height / 2) - 1; border++)
+            int[,] newField = new int[Area.Width, Area.Height];
+            for (int i = 1; i < Area.Height - 2; i++)
             {
-                int[,] newField = new int[area.Height, area.Height];
-                for (int i = (area.Height / 2) - border; i < (area.Height / 2) + border; i++)
+                for (int j = 1; j < Area.Width - 2; j++)
                 {
-                    for(int j = (area.Width / 2) - border; j < (area.Width / 2) + border; j++)
+                    int neighbors = 0;
+                    for (int p = 0; p < Neighborhood.Count(); p++)
                     {
-                        for (int p = 0; p < Neighborhood.Count(); p++)
+                        if (Field[j + Neighborhood[p].X, i + Neighborhood[p].Y] == 1)
                         {
-                            if (Field[j + Neighborhood[p].X, i + Neighborhood[p].Y] == 1)
-                            {
-                                neighbors[p] = 1;
-                            }
-                            else
-                            {
-                                neighbors[p] = 0;
-                            }
-                        }
-                        if (birth.Any(c => neighbors[c] == 1))
-                        {
-                            newField[j, i] = 1;
-                        }
-                        else if (survival.All(c => neighbors[c] == 0))
-                        {
-                            newField[j, i] = 0;
+                            neighbors++;
                         }
                     }
+                    if (Birth.Any(c => c == neighbors))
+                    {
+                        newField[j, i] = 1;
+                    }
+                    else if (Survival.All(c => c != neighbors))
+                    {
+                        newField[j, i] = 0;
+                    }
                 }
-                Field = newField;
-                Debug.WriteLine(border + "/" + area.Height / 2);
             }
+            Field = newField;
             stopwatch.Stop();
+            CalcTime = stopwatch.ElapsedMilliseconds;
             Debug.WriteLine(stopwatch.Elapsed);
         }
     }

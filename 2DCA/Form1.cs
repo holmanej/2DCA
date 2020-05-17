@@ -37,7 +37,7 @@ namespace _2DCA
             Panel controlPanel = new Panel()
             {
                 Location = Location,
-                Size = new Size(200, Height)
+                Size = new Size(200, 1000)
             };
             Controls.Add(controlPanel);
             Label rule_Label = new Label()
@@ -92,6 +92,15 @@ namespace _2DCA
             File_ListBox.DoubleClick += File_ListBox_DoubleClick;
             controlPanel.Controls.Add(File_ListBox);
 
+            Button SavePattern_Button = new Button()
+            {
+                Location = new Point(20, 700),
+                Size = new Size(100, 30),
+                Text = "Save Result"
+            };
+            SavePattern_Button.Click += SavePattern_Button_Click;
+            controlPanel.Controls.Add(SavePattern_Button);
+
             File_ListBox.Items.AddRange(Directory.GetFiles(".", "*.bmp").Select(f => f.Substring(2)).ToArray());
 
             RenderArea = new Rectangle(0, 0, (DrawWidth / PixelSize), (DrawHeight / PixelSize));
@@ -99,15 +108,39 @@ namespace _2DCA
             Initial = new Bitmap(DrawWidth / PixelSize, DrawHeight / PixelSize, PixelFormat.Format24bppRgb);
         }
 
+        private void SavePattern_Button_Click(object sender, EventArgs e)
+        {
+            Bitmap p = new Bitmap(180, 180);
+            for (int i = 0; i < 180; i++)
+            {
+                for (int j = 0; j < 180; j++)
+                {
+                    if (eca.Field[j, i] == 1)
+                    {
+                        p.SetPixel(j, i, Color.Black);
+                    }
+                    else
+                    {
+                        p.SetPixel(j, i, Color.White);
+                    }
+                }
+            }
+            p.Save("result.bmp", ImageFormat.Bmp);
+        }
+
         private void File_ListBox_DoubleClick(object sender, EventArgs e)
         {
             cycleTick.Stop();
             ListBox LB = (ListBox)sender;
+            
             Bitmap img = new Bitmap(LB.SelectedItem.ToString());
-            Initial = img;
+            Bitmap result = new Bitmap("template.bmp");
+            Graphics g = Graphics.FromImage(result);
+            g.DrawImage(img, 0, 0, img.Width, img.Height);
             Graphics gfx = CreateGraphics();
             Rectangle drawRect = new Rectangle((Width - 200 - 720) / 2, 5, 720, 720);
-            gfx.DrawImage(img, drawRect);
+            Initial = result;
+            gfx.DrawImage(result, drawRect);
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)

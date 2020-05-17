@@ -13,7 +13,7 @@ namespace _2DCA
     class _2DCA
     {
         public int[,] Field;
-        private Point[] Neighborhood = { new Point(0, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1), new Point(-1, 1), new Point(-1, 0), new Point(-1, -1), new Point(0, -1), new Point(1, -1) };
+        private Point[] Neighborhood = { new Point(1, 0), new Point(1, 1), new Point(0, 1), new Point(-1, 1), new Point(-1, 0), new Point(-1, -1), new Point(0, -1), new Point(1, -1) };
         private int[] Birth;
         private int[] Survival;
         private Size Area;
@@ -81,7 +81,11 @@ namespace _2DCA
                     {
                         newField[j, i] = 1;
                     }
-                    else if (Survival.All(c => c != neighbors))
+                    else if (Field[j, i] == 1 && Survival.Any(c => c == neighbors))
+                    {
+                        newField[j, i] = 1;
+                    }
+                    else
                     {
                         newField[j, i] = 0;
                     }

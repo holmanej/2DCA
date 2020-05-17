@@ -94,13 +94,14 @@ namespace _2DCA
 
             File_ListBox.Items.AddRange(Directory.GetFiles(".", "*.bmp").Select(f => f.Substring(2)).ToArray());
 
-            RenderArea = new Rectangle(0, 0, DrawWidth / PixelSize, DrawHeight / PixelSize);
+            RenderArea = new Rectangle(0, 0, (DrawWidth / PixelSize), (DrawHeight / PixelSize));
             DrawArea = new Rectangle(0, 0, DrawWidth, DrawHeight);
             Initial = new Bitmap(DrawWidth / PixelSize, DrawHeight / PixelSize, PixelFormat.Format24bppRgb);
         }
 
         private void File_ListBox_DoubleClick(object sender, EventArgs e)
         {
+            cycleTick.Stop();
             ListBox LB = (ListBox)sender;
             Bitmap img = new Bitmap(LB.SelectedItem.ToString());
             Initial = img;
@@ -149,7 +150,7 @@ namespace _2DCA
 
             cycleTick.Interval = 500;
             cycleTick.Tick += CycleTick_Tick;
-            //cycleTick.Start();
+            cycleTick.Start();
             //eca.NextCycle();
             DrawCycle();
         }

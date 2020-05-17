@@ -221,7 +221,6 @@ namespace _2DCA
                         patternValues[coordinate + 1] = 0;
                         patternValues[coordinate + 2] = 0;
                         patternValues[coordinate + 3] = 255;
-
                     }
                     else
                     {

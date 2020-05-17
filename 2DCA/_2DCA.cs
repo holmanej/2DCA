@@ -50,14 +50,6 @@ namespace _2DCA
                     }
                 }
             }
-            //else
-            //{
-            //    Debug.WriteLine(Birth.Min());
-            //    for (int i = 1; i <= Birth.Min(); i++)
-            //    {
-            //        Field[(Area.Width / 2) + Neighborhood[i].X, (Area.Height / 2) + Neighborhood[i].Y] = 1;
-            //    }
-            //}
         }
 
         public void NextCycle()

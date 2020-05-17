@@ -19,22 +19,25 @@ namespace _2DCA
         private Size Area;
         public long CalcTime;
 
-        public _2DCA(string rule, int density, bool random, Size area)
+        public _2DCA(string rule, int density, bool random, Bitmap init)
         {
             string[] parts = rule.Split('/');
-            Survival = Array.ConvertAll(parts[0].ToArray(), item => (int)item - '0');
-            Birth = Array.ConvertAll(parts[1].ToArray(), item => (int)item - '0');
-            //foreach (int b in Birth)
-            //{
-            //    Debug.WriteLine(b);
-            //}
-            //foreach (int b in Survival)
-            //{
-            //    Debug.WriteLine(b);
-            //}
+            Birth = Array.ConvertAll(parts[0].ToArray(), item => (int)item - '0');
+            Survival = Array.ConvertAll(parts[1].ToArray(), item => (int)item - '0');
 
-            Area = area;
+            Area = init.Size;
             Field = new int[Area.Width, Area.Height];
+            for (int i = 0; i < Area.Height; i++)
+            {
+                for (int j = 0; j < Area.Width; j++)
+                {
+                    //Debug.WriteLine(init.GetPixel(j, i));
+                    if (init.GetPixel(j, i).R == 0)
+                    {
+                        Field[j, i] = 1;
+                    }
+                }
+            }
 
             if (random)
             {
@@ -47,10 +50,14 @@ namespace _2DCA
                     }
                 }
             }
-            else
-            {
-                Field[Area.Width / 2, Area.Height / 2] = 1;
-            }
+            //else
+            //{
+            //    Debug.WriteLine(Birth.Min());
+            //    for (int i = 1; i <= Birth.Min(); i++)
+            //    {
+            //        Field[(Area.Width / 2) + Neighborhood[i].X, (Area.Height / 2) + Neighborhood[i].Y] = 1;
+            //    }
+            //}
         }
 
         public void NextCycle()

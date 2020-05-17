@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,7 +19,13 @@ namespace _2DCA
 
         private _2DCA eca;
         private Bitmap Pattern = new Bitmap(1, 1);
-        private Rectangle renderArea = new Rectangle(0, 0, 320, 240);
+        ListBox File_ListBox;
+        private int DrawWidth = 720;
+        private int DrawHeight = 720;
+        private int PixelSize = 4;
+        private Bitmap Initial;
+        private Rectangle RenderArea;
+        private Rectangle DrawArea;
         Timer cycleTick = new Timer();
 
         public Form1()
@@ -37,14 +44,14 @@ namespace _2DCA
             {
                 Location = new Point(20, 20),
                 Size = new Size(150, 20),
-                Text = "Rule (S/B)"
+                Text = "Rule (B/S)"
             };
             controlPanel.Controls.Add(rule_Label);
             TextBox rule_TextBox = new TextBox()
             {
                 Location = new Point(20, 50),
                 Size = new Size(100, 20),
-                Text = "1/123"
+                Text = "3/23"
             };
             controlPanel.Controls.Add(rule_TextBox);
 
@@ -77,14 +84,29 @@ namespace _2DCA
             generate_Button.Click += Generate_Button_Click;
             controlPanel.Controls.Add(generate_Button);
 
-            TextBox log_TextBox = new TextBox()
+            File_ListBox = new ListBox()
             {
                 Location = new Point(20, 200),
-                Size = new Size(100, 100),
-                Multiline = true,
-                ReadOnly = true
+                Size = new Size(100, 400)
             };
-            controlPanel.Controls.Add(log_TextBox);
+            File_ListBox.DoubleClick += File_ListBox_DoubleClick;
+            controlPanel.Controls.Add(File_ListBox);
+
+            File_ListBox.Items.AddRange(Directory.GetFiles(".", "*.bmp").Select(f => f.Substring(2)).ToArray());
+
+            RenderArea = new Rectangle(0, 0, DrawWidth / PixelSize, DrawHeight / PixelSize);
+            DrawArea = new Rectangle(0, 0, DrawWidth, DrawHeight);
+            Initial = new Bitmap(DrawWidth / PixelSize, DrawHeight / PixelSize, PixelFormat.Format24bppRgb);
+        }
+
+        private void File_ListBox_DoubleClick(object sender, EventArgs e)
+        {
+            ListBox LB = (ListBox)sender;
+            Bitmap img = new Bitmap(LB.SelectedItem.ToString());
+            Initial = img;
+            Graphics gfx = CreateGraphics();
+            Rectangle drawRect = new Rectangle((Width - 200 - 720) / 2, 5, 720, 720);
+            gfx.DrawImage(img, drawRect);
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -93,7 +115,7 @@ namespace _2DCA
             Size area = new Size(Width - 200, Height);
             SolidBrush grayBrush = new SolidBrush(Color.Gray);
             gfx.FillRectangle(grayBrush, 200, 0, area.Width, area.Height);
-            gfx.DrawImage(CropPattern(), 205, 5);
+            gfx.DrawImage(Pattern, (Width - 200 - 720) / 2, 5);
         }
 
         private void Generate_Button_Click(object sender, EventArgs e)
@@ -118,19 +140,18 @@ namespace _2DCA
                 CC[4].Text = "100";
             }
 
-            TextBox log = (TextBox)CC[6];
-            log.Clear();
-
-            Pattern = new Bitmap(renderArea.Width, renderArea.Height, PixelFormat.Format32bppRgb);
+            Pattern = new Bitmap(DrawArea.Width, DrawArea.Height, PixelFormat.Format32bppRgb);
             Graphics gfx = CreateGraphics();
             SolidBrush grayBrush = new SolidBrush(Color.Gray);
             gfx.FillRectangle(grayBrush, b.Parent.Width, 0, Width - b.Parent.Width, Height);
 
-            eca = new _2DCA(rule, density, cb.Checked, renderArea.Size);
+            eca = new _2DCA(rule, density, cb.Checked, Initial);
 
             cycleTick.Interval = 500;
             cycleTick.Tick += CycleTick_Tick;
-            cycleTick.Start();
+            //cycleTick.Start();
+            //eca.NextCycle();
+            DrawCycle();
         }
 
         private void CycleTick_Tick(object sender, EventArgs e)
@@ -149,18 +170,18 @@ namespace _2DCA
 
         private void DrawCycle()
         {
-            BitmapData bmpData = Pattern.LockBits(renderArea, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
+            BitmapData bmpData = Pattern.LockBits(DrawArea, ImageLockMode.ReadWrite, PixelFormat.Format32bppRgb);
             IntPtr ptr = bmpData.Scan0;
             int bytes = Math.Abs(bmpData.Stride) * Pattern.Height;
             byte[] patternValues = new byte[bytes];
             Marshal.Copy(ptr, patternValues, 0, bytes);
 
-            for (int i = 0; i < renderArea.Height - 1; i++)
+            for (int i = 0; i < DrawArea.Height - 1; i++)
             {
-                Parallel.For(0, renderArea.Width - 1, (j) =>
+                Parallel.For(0, DrawArea.Width - 1, (j) =>
                 {
-                    int coordinate = (i * 4 * renderArea.Width) + (j * 4);
-                    if (eca.Field[j, i] == 1)
+                    int coordinate = (i * 4 * PixelSize * RenderArea.Width) + (j * 4);
+                    if (eca.Field[j / PixelSize, i / PixelSize] == 1)
                     {
                         patternValues[coordinate] = 0;
                         patternValues[coordinate + 1] = 0;
@@ -181,17 +202,7 @@ namespace _2DCA
             Marshal.Copy(patternValues, 0, ptr, bytes);
             Pattern.UnlockBits(bmpData);
             Graphics gfx = CreateGraphics();
-            gfx.DrawImage(CropPattern(), 205, 5);
-        }
-
-        private Bitmap CropPattern()
-        {
-            int w = Width - 200;
-            int h = Height;
-            Bitmap b = new Bitmap(w, h);
-            Graphics g = Graphics.FromImage(b);
-            g.DrawImage(Pattern, new Rectangle(0, 0, w, h), new Rectangle((Pattern.Width - w) / 2, 0, w, h), GraphicsUnit.Pixel);
-            return b;
+            gfx.DrawImage(Pattern, (Width - 200 - 720) / 2, 5);
         }
     }
 }
